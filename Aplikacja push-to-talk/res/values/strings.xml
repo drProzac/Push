@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">Aplikacja_push_to_talk</string>
+    <string name="action_settings">Settings</string>
+    <string name="content">Image</string>
+    <string name="hello_world">Hello world!</string>
+    <string name="Wybor">Wybierz rodziaj połączenia</string>
+    <string name="bluetooth">Bluetooth</string>
+    <string name="WIFI">wifi</string>
+    <string name="wifi">skanowanie urzadzen w sieci wifi </string>
+    <string name="adress_urzadzenia">wprowadz adres ip drugiego urządzenia</string>
+    <string name="nie_polaczono">nie polaczono urzadzen</string>
+    <string name="laczenie">nacisnij laczenie urzadzen</string>
+       <string name="oczekiwanie">oczekiwanie na polaczenie</string>
+       <string name="wyslij">wysylanie </string>
+       <string name="polacz">laczenie urzadzen</string>
+       <string name="rozpocznij">urzadzenia sa polaczone</string>
+       <string name="problem_polaczenie">problem z polaczeniem, wlacz serwer a potem klient</string>
+       <string name="stop">stop</string>
+       <string name="odbierz">odbierz</string>
+       <string name="zamknij">zamknij aplikację</string>
+       <string name="rejestrowanie">rejestrowanie dzwieku</string>
+
+</resources>

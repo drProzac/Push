@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.example.aplikacja_push_to_talk"
+    android:versionCode="1"
+    android:inputType="textNoSuggestions"
+    android:versionName="1.0" >
+
+    <uses-sdk
+        android:minSdkVersion="7"
+        android:targetSdkVersion="19" />
+    <uses-permission android:name="android.permission.RECORD_AUDIO"></uses-permission>
+    <uses-permission android:name="android.permission.BLUETOOTH" />
+<uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
+<uses-permission android:name="android.permission.INTERNET" /> 
+<uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
+<uses-permission android:name="android.permission.CHANGE_WIFI_STATE"> </uses-permission>
+
+    <application
+        android:allowBackup="true"
+        android:icon="@drawable/push_button"
+        android:label="@string/app_name"
+        android:theme="@style/AppTheme" >
+        
+        <activity
+            android:name="com.example.aplikacja_push_to_talk.MainActivity"
+            android:label="@string/app_name" >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+         <activity android:name=".Wifi"></activity>
+         <activity android:name=".Push_to_talk"></activity>
+         <activity android:name=".Dzwiek_odbieranie"></activity>
+         <activity android:name=".Dzwiek_bluetooth"></activity>
+         <activity android:name=".MainBluetoothActivity"></activity>
+         <activity android:name=".Bluetooth_klient"></activity>
+         <activity android:name=".Bluetooth_Server"></activity>
+         <activity android:name=".Lista_urzadzen"></activity>
+         <activity android:name=".Wysylanie_dzwiek"></activity>
+         <activity android:name=".Odbieranie_dzwiek"></activity>
+    </application>
+
+</manifest>
