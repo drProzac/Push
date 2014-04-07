@@ -29,7 +29,7 @@ import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
-public class Wysylanie_dzwiek extends Activity implements 
+public class Obsluga_dzwiek_wifi extends Activity implements 
 	OnTouchListener, OnLongClickListener {
 
 

@@ -142,7 +142,7 @@ public class MainActivity extends Activity implements OnClickListener {
     
     private void przeniesienie() {
 	// TODO Auto-generated method stub
-	Intent intent = new Intent(getApplicationContext(), Wysylanie_dzwiek.class);
+	Intent intent = new Intent(getApplicationContext(), Obsluga_dzwiek_wifi.class);
 	startActivity(intent);
     }
 

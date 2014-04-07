@@ -29,16 +29,10 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-         <activity android:name=".Wifi"></activity>
-         <activity android:name=".Push_to_talk"></activity>
-         <activity android:name=".Dzwiek_odbieranie"></activity>
-         <activity android:name=".Dzwiek_bluetooth"></activity>
          <activity android:name=".MainBluetoothActivity"></activity>
          <activity android:name=".Bluetooth_klient"></activity>
          <activity android:name=".Bluetooth_Server"></activity>
-         <activity android:name=".Lista_urzadzen"></activity>
-         <activity android:name=".Wysylanie_dzwiek"></activity>
-         <activity android:name=".Odbieranie_dzwiek"></activity>
+         <activity android:name=".Obsluga_dzwiek_wifi"></activity>
     </application>
 
 </manifest>
