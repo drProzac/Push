@@ -83,8 +83,7 @@ public class Bluetooth_klient extends Thread {
 			try
 			{
 				bytes = inputStream.read(buffer);
-				mmHandler.obtainMessage(MainBluetoothActivity.MESSAGE_READ, bytes, -1, buffer)
-            .sendToTarget();
+				mmHandler.obtainMessage(MainBluetoothActivity.MESSAGE_READ, bytes, -1, buffer).sendToTarget();
 				
 				
 			}catch(IOException ex)

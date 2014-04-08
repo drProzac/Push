@@ -39,7 +39,7 @@ public class MainActivity extends Activity implements OnClickListener {
     private static String TAG = "MainActivity";
    
 
-    public Wifi mWifi;
+   
     public MainBluetoothActivity mBluetooth_main;
     @Override
     protected void onCreate(Bundle savedInstanceState) {

@@ -1,5 +1,12 @@
 package com.example.aplikacja_push_to_talk;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
+import java.net.SocketException;
 import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.util.UUID;
@@ -41,8 +48,8 @@ public class MainBluetoothActivity extends Activity {
     private BluetoothAdapter mBluetoothAdapter;
     private BluetoothServerSocket mServerSocket;
 
-    public AudioTrack audiotrack;
     public AudioRecord audiorecord;
+    public AudioTrack audiotrack;
     private Thread Rthread_receive;
     
     private int SAMPLERATE = 8000;
@@ -64,12 +71,13 @@ public class MainBluetoothActivity extends Activity {
 
     boolean czy_blue_server;
     boolean start;
-    public boolean statuss = true;
+    public boolean status = true;
     private Button polacz;
     private ImageButton wyslij;
-    private TextView status;
+    private TextView statuss;
     private TextView wynik;
     private static String TAG = "Wysylanie";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 	super.onCreate(savedInstanceState);
@@ -77,22 +85,27 @@ public class MainBluetoothActivity extends Activity {
 
 	polacz = (Button) findViewById(R.id.polacz);
 	wyslij = (ImageButton) findViewById(R.id.wyslij);
-	status = (TextView) findViewById(R.id.status);
-	status.setText(string.laczenie);
+	statuss = (TextView) findViewById(R.id.status);
+	statuss.setText(string.laczenie);
 
 	wynik = (TextView) findViewById(R.id.wynik);
-	try {
+	try 
+	{
 	    mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-	    if (mBluetoothAdapter == null) {
+	    if (mBluetoothAdapter == null) 
+	    {
 		Toast.makeText(getApplicationContext(),
 			" nie obsluguje bluetooth ", Toast.LENGTH_LONG).show();
 	    }
 
-	    if (mBluetoothAdapter.isEnabled()) {
+	    if (mBluetoothAdapter.isEnabled()) 
+	    {
 		wynik.setText("Adres: " + mBluetoothAdapter.getAddress() + "\n"
 			+ " Nazwa: " + mBluetoothAdapter.getName());
 		polaczenie();
-	    } else {
+	    } 
+	    else 
+	    {
 		Intent enableBtIntent = new Intent(
 			BluetoothAdapter.ACTION_REQUEST_ENABLE);
 		startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
@@ -101,48 +114,13 @@ public class MainBluetoothActivity extends Activity {
 	    e.printStackTrace();
 	}
 	
-	audiotrack = new AudioTrack(AudioManager.STREAM_MUSIC,
-		SAMPLERATE, CHANNEL_OUT, AUDIO_FORMAT,
-		bufferSize, AudioTrack.MODE_STREAM);
-	
-	    
-	audiorecord = new AudioRecord(MediaRecorder.AudioSource.MIC,
-		    SAMPLERATE, CHANNEL_IN, AUDIO_FORMAT, bufferSize);
-    }
 
+	
+    }
     int bufferSize = AudioRecord.getMinBufferSize(SAMPLERATE,
 	    AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT);
+	
     byte[] buffer = new byte[bufferSize];
-
-	    Thread rejestrowanie = new Thread(new Runnable() {
-		    
-		    @Override
-		    public void run() {
-			// TODO Auto-generated method stub
-			 Log.d(TAG, "watek nagrywania rozpoczety");
-			Looper.prepare();
-			try
-			{
-			    
-			    byte[] buffer = new byte[bufferSize];
-			    Toast.makeText(getApplicationContext(), "rejestrowanie ... ", Toast.LENGTH_LONG).show();
-			    audiorecord.startRecording();
-			    while (statuss == true)
-			    {
-				bufferSize = audiorecord.read(buffer, 0, buffer.length);
-				
-			    }
-			}
-			catch (Exception e)
-			{
-			    e.printStackTrace();
-			}
-		    }
-		});
-	
-	
-	
-    
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 	// TODO Auto-generated method stub
@@ -160,36 +138,79 @@ public class MainBluetoothActivity extends Activity {
 	} 
     }
 
+    Thread streamThread = new Thread(new Runnable() {
+
+	    @Override
+	    public void run() {
+		try {
+
+		    Log.d("VS", "bufor utworzony z rozmiarem " +bufferSize);
+		    audiorecord = new AudioRecord(MediaRecorder.AudioSource.MIC,
+			    SAMPLERATE, CHANNEL_IN, AUDIO_FORMAT, bufferSize);
+		    audiorecord.startRecording();
+
+		    while (status == true) {
+
+			bufferSize =  audiorecord.read(buffer, 0, buffer.length);
+
+		    }
+		  
+		} catch (Exception e) {
+		  
+		    Log.e("VS", "IOException" + e.toString());
+		    
+		}
+
+	    }
+
+	});
     
-    public void odtwarzanie()
-    {
+    
+
+    private void odbieranie() {
+	// TODO Auto-generated method stub
 	
-	Log.i("info", "odtwarzanie rozpoczete");
-	
-	Rthread_receive = new Thread(new Runnable() {
+	Thread odbior = new Thread(new Runnable() {
 	    
 	    @Override
 	    public void run() {
 		// TODO Auto-generated method stub
-		Looper.prepare();
-		audiotrack.play();
-		while (true)
-		{
-		    try
-		    {
-			audiotrack.write(buffer, 0, buffer.length);
-			
-		    }
-		    catch (Exception e)
-		    {
-			 Log.e("Error", "odczytywanie danych  blad " + e.toString());
-			e.printStackTrace();
+		try {
+
+			 
+
+		    int bufferSize = 50* AudioTrack.getMinBufferSize(
+			    SAMPLERATE, CHANNEL_OUT, AUDIO_FORMAT);
+		    byte[] buffer = new byte[bufferSize];
+
+		    audiotrack = new AudioTrack(AudioManager.STREAM_MUSIC,
+			    SAMPLERATE, CHANNEL_OUT, AUDIO_FORMAT, bufferSize,
+			    AudioTrack.MODE_STREAM);
+
+		    audiotrack.play();
+
+		    while (status == true) {
+			try {
+
+			    
+			    audiotrack.write(buffer, 0, bufferSize);
+			    Log.d("VR", "wpisanie bufora do audiotrack");
+			 
+			} catch (Exception e) {
+			    Log.e("VR", "IOException" + e.toString());
+			}
 		    }
 		}
+		catch (Exception e)
+		{
+		    e.printStackTrace();
+		}
+	
 	    }
 	});
-	Rthread_receive.start();
+	odbior.start();
     }
+
 
     private void polaczenie() {
 	// TODO Auto-generated method stub
@@ -209,7 +230,7 @@ public class MainBluetoothActivity extends Activity {
 		// TODO Auto-generated method stub
 		polacz.setEnabled(false);
 
-		status.setText(string.oczekiwanie);
+		statuss.setText(string.oczekiwanie);
 		try {
 		    if (czy_blue_server == true) {
 			blue_server = new Bluetooth_Server(myUUID,
@@ -238,10 +259,13 @@ public class MainBluetoothActivity extends Activity {
 	    
 	    @Override
 	    public boolean onLongClick(View v) {
-		// TODO Auto-generated method stub
-		rejestrowanie.start();
-		//
+		 status = true;
+		    streamThread.start();
 		return false;
+		// TODO Auto-generated method stub
+		  
+		 
+		
 	    }
 	});
 	
@@ -253,29 +277,26 @@ public class MainBluetoothActivity extends Activity {
 		switch (v.getId())
 		{
 		case MotionEvent.ACTION_DOWN:
-		    rejestrowanie.start();
+		    streamThread.start();
 		    
 		    break;
 		case MotionEvent.ACTION_UP:
-		    if (rejestrowanie.isAlive())
-		    {
-	    		Log.d(TAG, "watek zatrzymany");
-		    }
-		    if (start == false)
+		    odbieranie();
+		  if (true)
 			{
 			    wyslij_wiadomosc(buffer);
 			}
-		    
+		   
 		}
 		return false;
 	    }
+
 	});
 	
 
 
     }
 
-    
     private void wyslij_wiadomosc(byte[] buffer) {
 	if (blue_klient == null && blue_server == null) {
 	    Toast.makeText(getApplicationContext(),
@@ -290,29 +311,14 @@ public class MainBluetoothActivity extends Activity {
 	}
     }
 
-    // odbieranie
 
-    /*private void wyslij_wiadomosc(String wiadomosc) {
-	if (blue_klient == null && blue_server == null) {
-	    Toast.makeText(getApplicationContext(),
-		    "nacisnij laczenie urzadzen ", Toast.LENGTH_LONG).show();
-	}
-
-	if (czy_blue_server == true && (blue_server != null)) {
-	    blue_server.write((wiadomosc).getBytes());
-	}
-	if (czy_blue_server == false && (blue_klient != null)) {
-	    blue_klient.write((wiadomosc).getBytes());
-	}
-    }
-*/
     @Override
     protected void onResume() {
 	// TODO Auto-generated method stub
 	super.onResume();
 
 	polacz.setEnabled(true);
-	status.setText(string.laczenie);
+	statuss.setText(string.laczenie);
     }
 
     @Override
@@ -361,17 +367,16 @@ public class MainBluetoothActivity extends Activity {
 		// String odczytaj_wiadomosc = new String(odczytaj, 0,
 		// msg.arg1);
 		// status.setText(odczytaj_wiadomosc);
-		
-		 odtwarzanie();
+		 odbieranie();
 		break;
 
 	    case MESSAGE_WRITE:
-		status.setText(string.rozpocznij);
+		statuss.setText(string.rozpocznij);
 		//strumieniowanie();
 		break;
 
 	    case CONNECTION_PROBLEM:
-		status.setText(string.problem_polaczenie);
+		statuss.setText(string.problem_polaczenie);
 		polacz.setEnabled(true);
 		break;
 	    }

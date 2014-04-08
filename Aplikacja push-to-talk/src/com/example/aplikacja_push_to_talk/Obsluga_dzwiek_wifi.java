@@ -34,13 +34,14 @@ public class Obsluga_dzwiek_wifi extends Activity implements
 
 
     private AudioTrack audiotrack;
+    public AudioRecord recorder;
     
     private EditText wprowadz;
     private int SAMPLERATE = 8000;
     private int CHANNEL_IN = AudioFormat.CHANNEL_IN_MONO;
     private int CHANNEL_OUT = AudioFormat.CHANNEL_OUT_MONO;
     private int AUDIO_FORMAT = AudioFormat.ENCODING_PCM_16BIT;
-    public AudioRecord recorder;
+    
     public boolean status = true;
     public static final int SERVERPORT = 55984;
 
@@ -118,9 +119,7 @@ public class Obsluga_dzwiek_wifi extends Activity implements
 			    // 
 			    audiotrack.write(buffer, 0, bufferSize);
 			    Log.d("VR", "wpisanie bufora do audiotrack");
-			    
-			    status = false;
-
+			 
 			} catch (IOException e) {
 			    socket.close();
 			    Log.e("VR", "IOException" + e.toString());
@@ -184,7 +183,6 @@ public class Obsluga_dzwiek_wifi extends Activity implements
 				SERVERPORT);
 
 			socket.send(packet);
-			  status = false;
 
 			
 		    }
@@ -227,17 +225,14 @@ public class Obsluga_dzwiek_wifi extends Activity implements
 	switch (v.getId())
 	{
 	case MotionEvent.ACTION_DOWN:
-	    status = true;
+	    status = false;
 	    streamThread.start();
 	
 	    break;
 	case MotionEvent.ACTION_UP:
 	    status = false;
-	    streamThread.interrupt();
 	    recorder.stop();
 	    recorder.release();
-	  
-	    receiveThread.interrupt();
 	    audiotrack.release();
 	    audiotrack.stop();
 	    break;
