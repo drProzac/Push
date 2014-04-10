@@ -3,6 +3,8 @@ package com.example.aplikacja_push_to_talk;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.util.UUID;
 
 import android.bluetooth.BluetoothAdapter;
@@ -85,7 +87,14 @@ public class Bluetooth_Server extends Thread {
 	{
 		Log.d(TAG,"zapisywanie wiadomosci z MainBluetoothActivity");
 		try {
-			outputStream.write(buffer);
+			int legth = buffer.length;
+			ByteBuffer tempByte = ByteBuffer.allocate(buffer.length + Integer.SIZE);
+			tempByte.order(ByteOrder.LITTLE_ENDIAN);
+			//tempByte=new ByteBuffer [buffer.length + Integer.SIZE];
+			tempByte.putInt(legth);
+			tempByte.put(buffer);
+			tempByte.rewind();
+			outputStream.write(tempByte.array());
 		} catch (IOException e) {
 			Log.d(TAG,"problem z zapisem" + e);
 		}

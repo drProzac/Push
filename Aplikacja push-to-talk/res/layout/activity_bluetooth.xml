@@ -28,7 +28,7 @@
         android:text="Text:" />
 
     <TextView
-        android:id="@+id/status"
+        android:id="@+id/statuss"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignLeft="@+id/polacz"

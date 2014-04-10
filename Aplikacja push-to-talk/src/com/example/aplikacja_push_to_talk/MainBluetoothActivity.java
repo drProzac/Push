@@ -77,15 +77,24 @@ public class MainBluetoothActivity extends Activity {
     private TextView statuss;
     private TextView wynik;
     private static String TAG = "Wysylanie";
+    
+    private static boolean completePacket=false;
+    private static boolean receiveLeght=false;
+    private static int currentBufferPosition;
+	ByteBuffer packetBuffer;
+
+	int packetLength;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 	super.onCreate(savedInstanceState);
 	setContentView(R.layout.activity_bluetooth);
-
+	
+	packetBuffer=ByteBuffer.allocate(100000);
+	
 	polacz = (Button) findViewById(R.id.polacz);
 	wyslij = (ImageButton) findViewById(R.id.wyslij);
-	statuss = (TextView) findViewById(R.id.status);
+	statuss = (TextView) findViewById(R.id.statuss);
 	statuss.setText(string.laczenie);
 
 	wynik = (TextView) findViewById(R.id.wynik);
@@ -144,10 +153,12 @@ public class MainBluetoothActivity extends Activity {
 	    public void run() {
 		try {
 
-		    Log.d("VS", "bufor utworzony z rozmiarem " +bufferSize);
+		    Log.d("Stream", "bufor utworzony z rozmiarem " +bufferSize);
 		    audiorecord = new AudioRecord(MediaRecorder.AudioSource.MIC,
 			    SAMPLERATE, CHANNEL_IN, AUDIO_FORMAT, bufferSize);
+		    Log.d("Stream", "inicjacja audiorecord");
 		    audiorecord.startRecording();
+		    Log.d("Stream", "nagrywanie ...");
 
 		    while (status == true) {
 
@@ -282,10 +293,8 @@ public class MainBluetoothActivity extends Activity {
 		    break;
 		case MotionEvent.ACTION_UP:
 		    odbieranie();
-		  if (true)
-			{
+		
 			    wyslij_wiadomosc(buffer);
-			}
 		   
 		}
 		return false;
@@ -363,6 +372,36 @@ public class MainBluetoothActivity extends Activity {
 
 	    switch (msg.what) {
 	    case MESSAGE_READ:
+	    	ByteBuffer messageBuffer=ByteBuffer.allocate(msg.arg1);
+	    	
+	    	packetBuffer.put(messageBuffer);
+	    	currentBufferPosition=packetBuffer.position();
+
+	    	if (currentBufferPosition > Integer.SIZE)
+	    	{
+	    		packetLength=packetBuffer.getInt(0);
+	    		if (packetLength< currentBufferPosition)
+	    		{
+	    			completePacket=false;
+	    		}
+	    		else
+	    		{
+	    			completePacket=true;
+	    			currentBufferPosition=0;
+	    			packetBuffer.rewind();
+	    		}
+	    	}
+	    		
+	    	if (completePacket)
+	    	{
+	    		//odtworz dzwiek
+	    	}
+	    	else
+	    	{
+	    		
+	    	}
+	    	
+	    		
 		 //byte[] odczytaj = (byte[]) msg.obj;
 		// String odczytaj_wiadomosc = new String(odczytaj, 0,
 		// msg.arg1);

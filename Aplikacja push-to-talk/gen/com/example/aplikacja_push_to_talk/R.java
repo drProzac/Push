@@ -34,7 +34,7 @@ public final class R {
         public static final int port=0x7f08000a;
         public static final int powitanie=0x7f080009;
         public static final int record=0x7f080004;
-        public static final int status=0x7f080002;
+        public static final int statuss=0x7f080002;
         public static final int stop=0x7f080008;
         public static final int wifi=0x7f08000c;
         public static final int wprowadz=0x7f080005;
