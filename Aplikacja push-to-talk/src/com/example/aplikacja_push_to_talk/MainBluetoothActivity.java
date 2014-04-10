@@ -9,12 +9,16 @@ import java.net.InetAddress;
 import java.net.SocketException;
 import java.nio.Buffer;
 import java.nio.ByteBuffer;
+import java.util.TimerTask;
 import java.util.UUID;
+
+import javax.net.ssl.SSLEngineResult.HandshakeStatus;
 
 import org.apache.http.message.BufferedHeader;
 
 import com.example.aplikacja_push_to_talk.R.string;
 
+import android.R.bool;
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -50,12 +54,15 @@ public class MainBluetoothActivity extends Activity {
 
     public AudioRecord audiorecord;
     public AudioTrack audiotrack;
-    private Thread Rthread_receive;
+    private Thread Rthread;
     
     private int SAMPLERATE = 8000;
     private int CHANNEL_IN = AudioFormat.CHANNEL_IN_MONO;
     private int CHANNEL_OUT = AudioFormat.CHANNEL_OUT_MONO;
     private int AUDIO_FORMAT = AudioFormat.ENCODING_PCM_16BIT;
+    
+    private static final String rec = "Nagrywanie";
+    private static String play = "Odtwarzanie";
 
     private static UUID myUUID;
     private static final String myyUUID = "31cf3b50-bca4-11e3-b1b6-0800200c9a66"; // z generatora UUID wziête http://www.famkruithof.net/uuid/uuidgen
@@ -66,11 +73,12 @@ public class MainBluetoothActivity extends Activity {
     private static final int REQUEST_ENABLE_BT = 0;
     public static final int CONNECTION_PROBLEM = 3;
 
-    public Bluetooth_klient blue_klient;
-    public Bluetooth_Server blue_server;
+    public Bluetooth_klient bluetooth_klient;
+    public Bluetooth_Server bluetooth_Server;
 
-    boolean czy_blue_server;
+    boolean czy_bluetooth_server;
     boolean start;
+    boolean recordStarted=true;
     public boolean status = true;
     private Button polacz;
     private ImageButton wyslij;
@@ -84,7 +92,8 @@ public class MainBluetoothActivity extends Activity {
 	ByteBuffer packetBuffer;
 
 	int packetLength;
-
+	
+	private volatile bool stopThread;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 	super.onCreate(savedInstanceState);
@@ -123,11 +132,18 @@ public class MainBluetoothActivity extends Activity {
 	    e.printStackTrace();
 	}
 	
+	 audiorecord = new AudioRecord(MediaRecorder.AudioSource.MIC, SAMPLERATE,
+             CHANNEL_IN,
+             MediaRecorder.AudioEncoder.AMR_NB, bufferSize);
 
+     audiotrack = new AudioTrack(AudioManager.ROUTE_HEADSET, SAMPLERATE,
+             CHANNEL_OUT,
+             MediaRecorder.AudioEncoder.AMR_NB, bufferSize,
+             AudioTrack.MODE_STREAM);
 	
     }
     int bufferSize = AudioRecord.getMinBufferSize(SAMPLERATE,
-	    AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT);
+    		CHANNEL_IN, AudioFormat.ENCODING_PCM_16BIT);
 	
     byte[] buffer = new byte[bufferSize];
     @Override
@@ -147,90 +163,15 @@ public class MainBluetoothActivity extends Activity {
 	} 
     }
 
-    Thread streamThread = new Thread(new Runnable() {
-
-	    @Override
-	    public void run() {
-		try {
-
-		    Log.d("Stream", "bufor utworzony z rozmiarem " +bufferSize);
-		    audiorecord = new AudioRecord(MediaRecorder.AudioSource.MIC,
-			    SAMPLERATE, CHANNEL_IN, AUDIO_FORMAT, bufferSize);
-		    Log.d("Stream", "inicjacja audiorecord");
-		    audiorecord.startRecording();
-		    Log.d("Stream", "nagrywanie ...");
-
-		    while (status == true) {
-
-			bufferSize =  audiorecord.read(buffer, 0, buffer.length);
-
-		    }
-		  
-		} catch (Exception e) {
-		  
-		    Log.e("VS", "IOException" + e.toString());
-		    
-		}
-
-	    }
-
-	});
-    
-    
-
-    private void odbieranie() {
-	// TODO Auto-generated method stub
-	
-	Thread odbior = new Thread(new Runnable() {
-	    
-	    @Override
-	    public void run() {
-		// TODO Auto-generated method stub
-		try {
-
-			 
-
-		    int bufferSize = 50* AudioTrack.getMinBufferSize(
-			    SAMPLERATE, CHANNEL_OUT, AUDIO_FORMAT);
-		    byte[] buffer = new byte[bufferSize];
-
-		    audiotrack = new AudioTrack(AudioManager.STREAM_MUSIC,
-			    SAMPLERATE, CHANNEL_OUT, AUDIO_FORMAT, bufferSize,
-			    AudioTrack.MODE_STREAM);
-
-		    audiotrack.play();
-
-		    while (status == true) {
-			try {
-
-			    
-			    audiotrack.write(buffer, 0, bufferSize);
-			    Log.d("VR", "wpisanie bufora do audiotrack");
-			 
-			} catch (Exception e) {
-			    Log.e("VR", "IOException" + e.toString());
-			}
-		    }
-		}
-		catch (Exception e)
-		{
-		    e.printStackTrace();
-		}
-	
-	    }
-	});
-	odbior.start();
-    }
-
 
     private void polaczenie() {
 	// TODO Auto-generated method stub
 	myUUID = UUID.fromString(myyUUID);
 
 	if (mac_adres.equals(mBluetoothAdapter.getAddress().toString())) {
-	    czy_blue_server = true;
+	    czy_bluetooth_server = true;
 	} else {
-	    czy_blue_server = false;
+	    czy_bluetooth_server = false;
 	}
 	
 
@@ -243,17 +184,17 @@ public class MainBluetoothActivity extends Activity {
 
 		statuss.setText(string.oczekiwanie);
 		try {
-		    if (czy_blue_server == true) {
-			blue_server = new Bluetooth_Server(myUUID,
+		    if (czy_bluetooth_server == true) {
+		    	bluetooth_Server = new Bluetooth_Server(myUUID,
 				mBluetoothAdapter, mHandler);
-			blue_server.start();
+		    	bluetooth_Server.start();
 
 		    } else {
 			BluetoothDevice device = mBluetoothAdapter
 				.getRemoteDevice(mac_adres);
-			blue_klient = new Bluetooth_klient(device, myUUID,
+			bluetooth_klient = new Bluetooth_klient(device, myUUID,
 				mBluetoothAdapter, mHandler);
-			blue_klient.start();
+			bluetooth_klient.start();
 
 		    }
 
@@ -265,38 +206,50 @@ public class MainBluetoothActivity extends Activity {
 	    }
 
 	});
-	
-	wyslij.setOnLongClickListener(new OnLongClickListener() {
-	    
-	    @Override
-	    public boolean onLongClick(View v) {
-		 status = true;
-		    streamThread.start();
-		return false;
-		// TODO Auto-generated method stub
-		  
-		 
-		
-	    }
-	});
-	
+
 	wyslij.setOnTouchListener(new OnTouchListener() {
 	    
 	    @Override
 	    public boolean onTouch(View v, MotionEvent event) {
 		// TODO Auto-generated method stub
-		switch (v.getId())
-		{
-		case MotionEvent.ACTION_DOWN:
-		    streamThread.start();
-		    
-		    break;
-		case MotionEvent.ACTION_UP:
-		    odbieranie();
 		
-			    wyslij_wiadomosc(buffer);
-		   
-		}
+	    	if (event.getAction() == MotionEvent.ACTION_DOWN){
+	            
+	    			audiorecord.startRecording();
+			        Log.i("info", "Audio Recording started");
+			      // audiotrack.play();
+			        Log.i("info", "Audio Playing started");
+			        Rthread = new Thread(new Runnable() {
+			            public void run() {
+			                while (true) {
+			                    try {
+			                        audiorecord.read(buffer, 0, bufferSize);                                    
+			                        //audiotrack.write(buffer, 0, buffer.length);
+
+			                    } catch (Throwable t) {
+			                        Log.e("Error", "wpisywa");
+			                        t.printStackTrace();
+			                    }
+			                }
+			            }
+			        });
+			        Rthread.start();
+	    		
+	    	}
+	    	else if (event.getAction() == MotionEvent.ACTION_UP)
+	    	{
+	    		 if (!Thread.currentThread().isInterrupted()) 
+	    		 {
+	    			 audiorecord.stop();
+	    			 audiorecord.release();
+	    			 audiotrack.stop();
+	    			 audiotrack.release();
+	   
+	    			 Rthread.interrupt();
+	    			 
+	    			 wyslij_wiadomosc(buffer);
+	    		 }
+	    	}
 		return false;
 	    }
 
@@ -306,17 +259,19 @@ public class MainBluetoothActivity extends Activity {
 
     }
 
+  
+
     private void wyslij_wiadomosc(byte[] buffer) {
-	if (blue_klient == null && blue_server == null) {
+	if (bluetooth_klient == null && bluetooth_Server == null) {
 	    Toast.makeText(getApplicationContext(),
 		    "nacisnij polacz na poczatku ", Toast.LENGTH_LONG).show();
 	}
 
-	if (czy_blue_server == true && (blue_server != null)) {
-	    blue_server.write(buffer);
+	if (czy_bluetooth_server == true && (bluetooth_Server != null)) {
+		bluetooth_Server.write(buffer);
 	}
-	if (czy_blue_server == false && (blue_klient != null)) {
-	    blue_klient.write(buffer);
+	if (czy_bluetooth_server == false && (bluetooth_klient != null)) {
+		bluetooth_klient.write(buffer);
 	}
     }
 
@@ -335,14 +290,14 @@ public class MainBluetoothActivity extends Activity {
 	// TODO Auto-generated method stub
 	super.onPause();
 
-	if (blue_klient != null) {
-	    blue_klient.cancel();
-	    blue_klient = null;
+	if (bluetooth_klient != null) {
+		bluetooth_klient.cancel();
+		bluetooth_klient = null;
 	}
 
-	if (blue_server != null) {
-	    blue_server.cancel();
-	    blue_server = null;
+	if (bluetooth_Server != null) {
+		bluetooth_Server.cancel();
+		bluetooth_Server = null;
 	}
 
     }
@@ -351,16 +306,18 @@ public class MainBluetoothActivity extends Activity {
     protected void onDestroy() {
 	// TODO Auto-generated method stub
 	super.onDestroy();
-
-	if (blue_klient != null) {
-	    blue_klient.cancel();
-	    blue_klient = null;
+	
+	if (bluetooth_klient != null) {
+		bluetooth_klient.cancel();
+		bluetooth_klient = null;
 	}
 
-	if (blue_server != null) {
-	    blue_server.cancel();
-	    blue_server = null;
+	if (bluetooth_Server != null) {
+		bluetooth_Server.cancel();
+		bluetooth_Server = null;
 	}
+	
+	
     }
 
     private Handler mHandler = new Handler() {
@@ -395,6 +352,32 @@ public class MainBluetoothActivity extends Activity {
 	    	if (completePacket)
 	    	{
 	    		//odtworz dzwiek
+	    		Thread odtworz = new Thread(new Runnable() {
+	    			
+	    			@Override
+	    			public void run() {
+	    				// TODO Auto-generated method stub
+	    				try
+	    				{
+	    					audiotrack = new AudioTrack(AudioManager.STREAM_SYSTEM,
+	    							SAMPLERATE, CHANNEL_OUT, AUDIO_FORMAT,
+	    							2*bufferSize, AudioTrack.MODE_STREAM);
+	    					audiotrack.play();
+	    					Log.e(play, "trwa odtwarzanie ... ");
+	    					int i=0;
+	    					while(i<bufferSize) {
+	    					audiotrack.write(buffer, i++, 1);
+	    				
+	    					}
+	    				}
+	    				catch (Exception e)
+	    				{
+	    					e.printStackTrace();
+	    					Log.e("Odtwarzanie: ", "blad " + e.toString());
+	    				}
+	    			}
+	    		});
+	    		odtworz.start();
 	    	}
 	    	else
 	    	{
@@ -406,7 +389,6 @@ public class MainBluetoothActivity extends Activity {
 		// String odczytaj_wiadomosc = new String(odczytaj, 0,
 		// msg.arg1);
 		// status.setText(odczytaj_wiadomosc);
-		 odbieranie();
 		break;
 
 	    case MESSAGE_WRITE:

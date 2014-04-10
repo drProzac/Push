@@ -59,7 +59,6 @@ public class Bluetooth_Server extends Thread {
 				try
 				{
 					bytes = inputStream.read(buffer);
-					
 	                mmHandler.obtainMessage(MainBluetoothActivity.MESSAGE_READ, bytes, -1, buffer)
 	                .sendToTarget();
 					
