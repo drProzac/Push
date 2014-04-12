@@ -10,6 +10,7 @@ import java.util.UUID;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothServerSocket;
 import android.bluetooth.BluetoothSocket;
+import android.content.Intent;
 import android.os.Handler;
 import android.util.Log;
 
@@ -25,6 +26,9 @@ public class Bluetooth_Server extends Thread {
 	private OutputStream outputStream;
 	private  Handler mmHandler;
 	private boolean polaczone;
+	  public Bluetooth_Server bluetooth_Server;
+	  
+	private ByteBuffer tempByte;
 	
     public  Bluetooth_Server(UUID myUUID, BluetoothAdapter mBluetoothAdapter,
 	    Handler mHandler) {
@@ -87,13 +91,17 @@ public class Bluetooth_Server extends Thread {
 		Log.d(TAG,"zapisywanie wiadomosci z MainBluetoothActivity");
 		try {
 			int legth = buffer.length;
-			ByteBuffer tempByte = ByteBuffer.allocate(buffer.length + Integer.SIZE);
+			tempByte = ByteBuffer.allocate(buffer.length + Integer.SIZE);
+			// ByteOrder - definiuje stala kolejnosc bajtow w buforze, LITTLE_ENDIAN - zaczynajac 
+			// od najmniej znaczacego bitu
 			tempByte.order(ByteOrder.LITTLE_ENDIAN);
 			//tempByte=new ByteBuffer [buffer.length + Integer.SIZE];
 			tempByte.putInt(legth);
 			tempByte.put(buffer);
 			tempByte.rewind();
 			outputStream.write(tempByte.array());
+			
+		
 		} catch (IOException e) {
 			Log.d(TAG,"problem z zapisem" + e);
 		}

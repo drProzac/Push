@@ -14,7 +14,7 @@ import android.util.Log;
 
 public class Bluetooth_klient extends Thread {
     
-    private BluetoothAdapter mBluetoothAdapter;
+    private BluetoothAdapter mmBluetoothAdapter;
     private BluetoothSocket mSocket;
     private final static String TAG = "Bluetooth_klient";
     private InputStream inputStream;
@@ -30,7 +30,7 @@ public class Bluetooth_klient extends Thread {
 	mmHandler = mHandler;
 	polaczone = false;
 	
-	this.mBluetoothAdapter = mBluetoothAdapter;
+	this.mmBluetoothAdapter = mBluetoothAdapter;
 	
 	try
 	{

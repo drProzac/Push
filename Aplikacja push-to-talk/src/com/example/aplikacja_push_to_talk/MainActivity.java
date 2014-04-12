@@ -2,10 +2,9 @@ package com.example.aplikacja_push_to_talk;
 
 import java.io.IOException;
 import java.lang.reflect.Method;
+import java.net.ServerSocket;
 
-import android.media.AudioFormat;
-import android.media.AudioRecord;
-import android.media.MediaRecorder.AudioSource;
+
 import android.os.Bundle;
 import android.os.ParcelUuid;
 import android.app.Activity;
@@ -97,10 +96,10 @@ public class MainActivity extends Activity implements OnClickListener {
 	// ServerSocket s = new ServerSocket(0);
 	// port.setText("port: " + s.getLocalPort());
 
-	String text = "port: 55984";
-	port.setText(text);
-	/*try {
-	    ServerSocket s = create(new int[] { 3843, 4584, 4843 });
+	//String text = "port: 55984";
+	//port.setText(text);
+	try {
+	    ServerSocket s = create(new int[] { 55984 });
 	    port.setText("nasluchiwanie na port: " + s.getLocalPort());
 	} catch (IOException ex) {
 	    port.setText("nie ma dostepnych portow");
@@ -109,10 +108,10 @@ public class MainActivity extends Activity implements OnClickListener {
 	    Log.e("PORT: ", "nie jest dostepny" + e.toString());
 	    e.printStackTrace();
 	}
-	*/
+	
     }
 
-    /*private ServerSocket create(int[] ports) throws Exception {
+    private ServerSocket create(int[] ports) throws Exception {
 	for (int port : ports) {
 	    try {
 		return new ServerSocket(port);
@@ -122,7 +121,7 @@ public class MainActivity extends Activity implements OnClickListener {
 	}
 	throw new IOException("nie znaleziono wolnych portow");
     }
-*/
+
     @Override
     public void onClick(View v) {
 	// TODO Auto-generated method stub
