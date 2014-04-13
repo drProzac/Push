@@ -11,7 +11,9 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothServerSocket;
 import android.bluetooth.BluetoothSocket;
 import android.content.Intent;
+import android.os.Bundle;
 import android.os.Handler;
+import android.os.Parcelable;
 import android.util.Log;
 
 
@@ -28,7 +30,7 @@ public class Bluetooth_Server extends Thread {
 	private boolean polaczone;
 	  public Bluetooth_Server bluetooth_Server;
 	  
-	private ByteBuffer tempByte;
+	public ByteBuffer tempByte;
 	
     public  Bluetooth_Server(UUID myUUID, BluetoothAdapter mBluetoothAdapter,
 	    Handler mHandler) {
@@ -99,7 +101,11 @@ public class Bluetooth_Server extends Thread {
 			tempByte.putInt(legth);
 			tempByte.put(buffer);
 			tempByte.rewind();
+			
+			tempByte.flip();
 			outputStream.write(tempByte.array());
+			
+	
 			
 		
 		} catch (IOException e) {

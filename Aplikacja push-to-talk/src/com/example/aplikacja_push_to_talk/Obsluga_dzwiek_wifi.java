@@ -8,11 +8,14 @@ import java.net.SocketException;
 import java.util.Locale;
 
 import android.app.Activity;
+import android.content.Context;
 import android.media.AudioFormat;
 import android.media.AudioManager;
 import android.media.AudioRecord;
 import android.media.AudioTrack;
 import android.media.MediaRecorder;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
@@ -65,14 +68,13 @@ public class Obsluga_dzwiek_wifi extends Activity implements
 	 
 	 recorder = new AudioRecord(MediaRecorder.AudioSource.MIC,
 		    SAMPLERATE, CHANNEL_IN, AUDIO_FORMAT, minBufSize);
-	 
+	
 	    }
  
     int minBufSize = AudioRecord.getMinBufferSize(SAMPLERATE,
 	    CHANNEL_IN, AUDIO_FORMAT);
     
 
- 
     public void odbieranie() {
 
 	receiveThread.start();

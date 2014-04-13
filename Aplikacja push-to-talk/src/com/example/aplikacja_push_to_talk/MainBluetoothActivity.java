@@ -89,6 +89,8 @@ public class MainBluetoothActivity extends Activity {
 	wyslij = (ImageButton) findViewById(R.id.wyslij);
 	statuss = (TextView) findViewById(R.id.statuss);
 	statuss.setText(string.laczenie);
+	
+
 
 	wynik = (TextView) findViewById(R.id.wynik);
 	try 
@@ -206,6 +208,7 @@ public class MainBluetoothActivity extends Activity {
 	    		
 	    			audiorecord.startRecording();
 			        Log.i("info", "nagrywanie dzwieku rozpoczete");
+			        Toast.makeText(getApplicationContext(), "rejestrownie dŸwiêku rozpoczete ... ", Toast.LENGTH_LONG).show();
 			      // audiotrack.play();
 			      
 			        Rthread = new Thread(new Runnable() {
@@ -213,8 +216,7 @@ public class MainBluetoothActivity extends Activity {
 			                while (true) {
 			                    try {
 			                        audiorecord.read(buffer, 0, bufferSize);                               
-			                       
-
+			                
 			                    } catch (Throwable t) {
 			                        Log.e(nag, "nagrywanie blad " + t.toString());
 			                        t.printStackTrace();
@@ -233,13 +235,18 @@ public class MainBluetoothActivity extends Activity {
 	    			 Rthread.interrupt();
 	    			 Log.d(nag, "nie nagrywa ");
 	    			 audiorecord.stop();
-	    			 audiorecord.release();
+	    			// audiorecord.release();
 	    			 //audiotrack.stop();
 	    			// audiotrack.release();
 	    			
 	    		 }
 	    		 // tu powinien byæ ten tempByte jako parametr
-	    		 wyslij_wiadomosc(buffer);
+	    		 if (start == false)
+	    		 {
+	    			 wyslij_wiadomosc(buffer);
+	    			 //audiorecord.release();
+	    		 }
+	    		
 	    		
 	    	}
 		return false;
@@ -264,6 +271,7 @@ public class MainBluetoothActivity extends Activity {
 	}
 	else if (czy_bluetooth_server == false && (bluetooth_klient != null)) {
 		bluetooth_klient.write(buffer);
+		Log.d(wys, "trwa wysylanie wiadomosci");
 	}
     }
 
@@ -408,6 +416,8 @@ public class MainBluetoothActivity extends Activity {
 
 	    case MESSAGE_WRITE:
 		statuss.setText(string.rozpocznij);
+		
+		
 		//strumieniowanie();
 		break;
 
