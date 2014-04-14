@@ -55,7 +55,7 @@ public class Bluetooth_Server extends Thread {
 			inputStream = mSocket.getInputStream();
 			outputStream = mSocket.getOutputStream();
 			polaczone = true;
-			byte[] buffer = new byte[1024];
+			byte[] buffer = new byte[10000];
 			int bytes;
 
 			mmHandler.obtainMessage(MainBluetoothActivity.MESSAGE_WRITE, -1, -1,buffer).sendToTarget();
@@ -94,15 +94,14 @@ public class Bluetooth_Server extends Thread {
 		try {
 			int legth = buffer.length;
 			tempByte = ByteBuffer.allocate(buffer.length + Integer.SIZE);
-			// ByteOrder - definiuje stala kolejnosc bajtow w buforze, LITTLE_ENDIAN - zaczynajac 
-			// od najmniej znaczacego bitu
+			
 			tempByte.order(ByteOrder.LITTLE_ENDIAN);
 			//tempByte=new ByteBuffer [buffer.length + Integer.SIZE];
 			tempByte.putInt(legth);
 			tempByte.put(buffer);
 			tempByte.rewind();
 			
-			tempByte.flip();
+			//tempByte.flip();
 			outputStream.write(tempByte.array());
 			
 	

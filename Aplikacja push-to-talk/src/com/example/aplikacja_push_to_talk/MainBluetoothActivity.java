@@ -73,9 +73,10 @@ public class MainBluetoothActivity extends Activity {
     
     private static boolean completePacket=false;
    // private static boolean receiveLeght=false;
-    private static int currentBufferPosition;
+    private static int currentBufferPosition = 0;
+    
 	ByteBuffer packetBuffer;
-
+	ByteBuffer messageBuffer;
 	int packetLength;
 
     @Override
@@ -89,8 +90,6 @@ public class MainBluetoothActivity extends Activity {
 	wyslij = (ImageButton) findViewById(R.id.wyslij);
 	statuss = (TextView) findViewById(R.id.statuss);
 	statuss.setText(string.laczenie);
-	
-
 
 	wynik = (TextView) findViewById(R.id.wynik);
 	try 
@@ -128,10 +127,11 @@ public class MainBluetoothActivity extends Activity {
              AudioTrack.MODE_STREAM);
 	
     }
-    int bufferSize = AudioRecord.getMinBufferSize(SAMPLERATE,
+    int bufferSize = 50*AudioRecord.getMinBufferSize(SAMPLERATE,
     		CHANNEL_IN, AUDIO_FORMAT);
 	
-    byte[] buffer = new byte[bufferSize];
+    
+   // byte[] buffer = new byte[bufferSize];
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 	// TODO Auto-generated method stub
@@ -215,7 +215,8 @@ public class MainBluetoothActivity extends Activity {
 			            public void run() {
 			                while (true) {
 			                    try {
-			                        audiorecord.read(buffer, 0, bufferSize);                               
+			         
+			                        audiorecord.read(packetBuffer.array(), 0, bufferSize);                               
 			                
 			                    } catch (Throwable t) {
 			                        Log.e(nag, "nagrywanie blad " + t.toString());
@@ -240,12 +241,12 @@ public class MainBluetoothActivity extends Activity {
 	    			// audiotrack.release();
 	    			
 	    		 }
-	    		 // tu powinien byæ ten tempByte jako parametr
+	    		
 	    		 if (start == false)
 	    		 {
-	    			 wyslij_wiadomosc(buffer);
-	    			 //audiorecord.release();
+	    			 wyslij_wiadomosc(packetBuffer.array()); 
 	    		 }
+	    			 
 	    		
 	    		
 	    	}
@@ -266,11 +267,11 @@ public class MainBluetoothActivity extends Activity {
 	}
 
 	else if (czy_bluetooth_server == true && (bluetooth_Server != null)) {
-		bluetooth_Server.write(buffer);
+		bluetooth_Server.write(packetBuffer.array());
 		Log.d(wys, "trwa wysylanie wiadomosci");
 	}
 	else if (czy_bluetooth_server == false && (bluetooth_klient != null)) {
-		bluetooth_klient.write(buffer);
+		bluetooth_klient.write(packetBuffer.array());
 		Log.d(wys, "trwa wysylanie wiadomosci");
 	}
     }
@@ -329,9 +330,11 @@ public class MainBluetoothActivity extends Activity {
 
 	    switch (msg.what) {
 	    case MESSAGE_READ:
-	    	ByteBuffer messageBuffer=ByteBuffer.allocate(msg.arg1);
-	    	
+	    	packetBuffer.position(currentBufferPosition);
+	    	messageBuffer=ByteBuffer.allocate(msg.arg1);
 	    	packetBuffer.put(messageBuffer);
+	    	
+	    	Log.e(nag, "pozycja w buforze: " + currentBufferPosition);
 	    	currentBufferPosition=packetBuffer.position();
 
 	    	if (currentBufferPosition > Integer.SIZE)
@@ -344,14 +347,17 @@ public class MainBluetoothActivity extends Activity {
 	    		else
 	    		{
 	    			completePacket=true;
-	    			currentBufferPosition=0;
+	    			//currentBufferPosition=0;
 	    			packetBuffer.rewind();
+	    			//currentBufferPosition = packetBuffer.position();
+	    			//Log.e(nag, "pozycja w buforze pelny: " + currentBufferPosition);
 	    		}
 	    	}
 	    		
 	    	if (completePacket)
 	    	{
 	    		//odtworz dzwiek
+	    		completePacket = false;
 	    		audiotrack.play();
 	    		Rthread_receive = new Thread(new Runnable() {
 					
@@ -363,7 +369,8 @@ public class MainBluetoothActivity extends Activity {
 							 Log.i("info", "odtwarzanie rozpoczete ");
 							try
 							{
-								audiotrack.write(buffer, 0, buffer.length);
+								audiotrack.write(packetBuffer.array(), 0, currentBufferPosition);
+								currentBufferPosition = 0;
 							}
 							catch (Exception e)
 							{

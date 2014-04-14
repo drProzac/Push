@@ -74,7 +74,7 @@ public class Bluetooth_klient extends Thread {
 	{
 		Log.d(TAG, "run");
 		
-		byte[] buffer = new byte[1024];
+		byte[] buffer = new byte[10000];
 		int bytes;
 
 		mmHandler.obtainMessage(MainBluetoothActivity.MESSAGE_WRITE, -1, -1,buffer).sendToTarget();
