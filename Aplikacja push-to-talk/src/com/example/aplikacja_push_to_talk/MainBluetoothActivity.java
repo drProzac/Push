@@ -257,13 +257,14 @@ public class MainBluetoothActivity extends Activity {
 		else if (czy_bluetooth_server == true && (bluetooth_Server != null)) {
 			//bluetooth_Server.write(buffer);
 			bluetooth_Server.write(Integer.SIZE);
-			Log.d(wys, "trwa wysylanie wiadomosci1 "+ Integer.SIZE);
+			size = Integer.SIZE;
+			Log.d(wys, "trwa wysylanie wiadomosci1 "+ size);
 			
 			
 		} 
-		else if (czy_bluetooth_klient == false && (bluetooth_klient != null)) {
+		else if (czy_bluetooth_server == false && (bluetooth_klient != null)) {
 			bluetooth_klient.write(Integer.SIZE);
-			Log.d(wys, "trwa wysylanie wiadomosci2 " + Integer.SIZE);
+			Log.d(wys, "trwa wysylanie wiadomosci2 " + size);
 		}
 		
 	}

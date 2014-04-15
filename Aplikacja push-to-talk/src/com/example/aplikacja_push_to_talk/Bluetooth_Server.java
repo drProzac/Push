@@ -105,7 +105,8 @@ public class Bluetooth_Server extends Thread {
 	*/
 	public void write(int size) {
 		// TODO Auto-generated method stub
-		tempByte = ByteBuffer.allocate(Integer.SIZE);
+		size = Integer.SIZE;
+		tempByte = ByteBuffer.allocate(size);
 		tempByte.capacity();
 		tempByte.order(ByteOrder.LITTLE_ENDIAN);
 		// tempByte=new ByteBuffer [buffer.length + Integer.SIZE];

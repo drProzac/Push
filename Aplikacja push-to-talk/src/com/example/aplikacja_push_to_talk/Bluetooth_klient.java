@@ -116,7 +116,8 @@ public class Bluetooth_klient extends Thread {
 	public void write(int size) {
 		// TODO Auto-generated method stub
 		try {
-			outputStream.write(Integer.SIZE);
+			size = Integer.SIZE;
+			outputStream.write(size);
 
 		} catch (IOException e) {
 			Log.d(TAG, "problem z wpisywaniem" + e);
