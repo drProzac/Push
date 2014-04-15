@@ -10,121 +10,127 @@ import java.util.UUID;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothServerSocket;
 import android.bluetooth.BluetoothSocket;
-import android.content.Intent;
-import android.os.Bundle;
 import android.os.Handler;
-import android.os.Parcelable;
 import android.util.Log;
-
-
 
 public class Bluetooth_Server extends Thread {
 
-    private final static String TAG = "Bluetooth_Server";
+	private final static String TAG = "Bluetooth_Server";
 	private BluetoothServerSocket mServerSocket;
 	private BluetoothSocket mSocket;
-	private  BluetoothAdapter mBluetoothAdapter;
+	private BluetoothAdapter mBluetoothAdapter;
 	private InputStream inputStream;
 	private OutputStream outputStream;
-	private  Handler mmHandler;
+	private Handler mmHandler;
 	private boolean polaczone;
-	  public Bluetooth_Server bluetooth_Server;
-	  
+	public Bluetooth_Server bluetooth_Server;
+
 	public ByteBuffer tempByte;
-	
-    public  Bluetooth_Server(UUID myUUID, BluetoothAdapter mBluetoothAdapter,
-	    Handler mHandler) {
-	// TODO Auto-generated constructor stub
-	mmHandler = mHandler;
-	this.mBluetoothAdapter = mBluetoothAdapter;
-	BluetoothServerSocket tmp = null;;
-	try {
-		mServerSocket = mBluetoothAdapter.listenUsingRfcommWithServiceRecord("MainBluetoothActivity", myUUID);
-	} catch (IOException e) {
-		Log.d(TAG,"problem z utworzeniem socketa" + e);
-		e.printStackTrace();
+
+	public Bluetooth_Server(UUID myUUID, BluetoothAdapter mBluetoothAdapter,
+			Handler mHandler) {
+		// TODO Auto-generated constructor stub
+		mmHandler = mHandler;
+		this.mBluetoothAdapter = mBluetoothAdapter;
+		BluetoothServerSocket tmp = null;
+		;
+		try {
+			mServerSocket = mBluetoothAdapter
+					.listenUsingRfcommWithServiceRecord(
+							"MainBluetoothActivity", myUUID);
+		} catch (IOException e) {
+			Log.d(TAG, "problem z utworzeniem socketa" + e);
+			e.printStackTrace();
+		}
 	}
-    }
-    public void run()
-	{
-		try
-		{
+
+	public void run() {
+		try {
 			Log.d(TAG, "run ");
-			mSocket = mServerSocket.accept();		
-		
+			mSocket = mServerSocket.accept();
+
 			inputStream = mSocket.getInputStream();
 			outputStream = mSocket.getOutputStream();
 			polaczone = true;
-			byte[] buffer = new byte[10000];
+			byte[] buffer = new byte[100000];
 			int bytes;
 
-			mmHandler.obtainMessage(MainBluetoothActivity.MESSAGE_WRITE, -1, -1,buffer).sendToTarget();
-	
-			while(true)
-			{
-				try
-				{
+			mmHandler.obtainMessage(MainBluetoothActivity.MESSAGE_WRITE, -1,
+					-1, buffer).sendToTarget();
+
+			while (true) {
+				try {
 					bytes = inputStream.read(buffer);
-	                mmHandler.obtainMessage(MainBluetoothActivity.MESSAGE_READ, bytes, -1, buffer)
-	                .sendToTarget();
-					
-				}catch(IOException ex)
-				{
+					mmHandler.obtainMessage(MainBluetoothActivity.MESSAGE_READ,
+							bytes, -1, buffer).sendToTarget();
+
+				} catch (IOException ex) {
 					Log.d(TAG, "problem z wczytaniem bufora wejsciowego " + ex);
 					break;
 				}
-				
+
 			}
-			mmHandler.obtainMessage(MainBluetoothActivity.CONNECTION_PROBLEM, -1, -1,buffer).sendToTarget();
+			mmHandler.obtainMessage(MainBluetoothActivity.CONNECTION_PROBLEM,
+					-1, -1, buffer).sendToTarget();
 			try {
 				mSocket.close();
 			} catch (IOException e) {
 				Log.d(TAG, "zamkniecie " + e);
 				e.printStackTrace();
 			}
-		}catch(Exception e)
-		{
-			Log.d(TAG,"problem z run " + e);
+		} catch (Exception e) {
+			Log.d(TAG, "problem z run " + e);
 		}
 	}
-	
-	public void write(byte[] buffer)
-	{
-		Log.d(TAG,"zapisywanie wiadomosci z MainBluetoothActivity");
+
+	/*public void write(byte[] buffer) {
+		Log.d(TAG, "zapisywanie wiadomosci z MainBluetoothActivity");
 		try {
 			int legth = buffer.length;
 			tempByte = ByteBuffer.allocate(buffer.length + Integer.SIZE);
-			
+			tempByte.capacity();
 			tempByte.order(ByteOrder.LITTLE_ENDIAN);
-			//tempByte=new ByteBuffer [buffer.length + Integer.SIZE];
+			// tempByte=new ByteBuffer [buffer.length + Integer.SIZE];
 			tempByte.putInt(legth);
 			tempByte.put(buffer);
 			tempByte.rewind();
-			
-			//tempByte.flip();
+
+			// tempByte.flip();
 			outputStream.write(tempByte.array());
-			
-	
-			
-		
+
 		} catch (IOException e) {
-			Log.d(TAG,"problem z zapisem" + e);
+			Log.d(TAG, "problem z zapisem" + e);
 		}
 	}
+	*/
+	public void write(int size) {
+		// TODO Auto-generated method stub
+		tempByte = ByteBuffer.allocate(Integer.SIZE);
+		tempByte.capacity();
+		tempByte.order(ByteOrder.LITTLE_ENDIAN);
+		// tempByte=new ByteBuffer [buffer.length + Integer.SIZE];
 	
-	public void cancel()
-	{
-		try
-		{
+		tempByte.rewind();
+		try {
+			outputStream.write(tempByte.getInt());
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+
+	public void cancel() {
+		try {
 			mServerSocket.close();
 			polaczone = false;
-		}catch(Exception ex)
-		{
+		} catch (Exception ex) {
 			Log.d(TAG, "problem z zamknieciem socketa");
 		}
 	}
-	public boolean getConnected()
-	{
+
+	public boolean getConnected() {
 		return polaczone;
 	}
+
+	
 }
