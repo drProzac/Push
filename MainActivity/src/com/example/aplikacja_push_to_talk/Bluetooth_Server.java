@@ -83,40 +83,14 @@ public class Bluetooth_Server extends Thread {
 		}
 	}
 
-	/*public void write(byte[] buffer) {
-		Log.d(TAG, "zapisywanie wiadomosci z MainBluetoothActivity");
+	public void write(byte[] buffer) {
+		Log.d(TAG, "zapisywanie wiadomosci z MainBluetoothActivity " + buffer.length);
 		try {
-			int legth = buffer.length;
-			tempByte = ByteBuffer.allocate(buffer.length + Integer.SIZE);
-			tempByte.capacity();
-			tempByte.order(ByteOrder.LITTLE_ENDIAN);
-			// tempByte=new ByteBuffer [buffer.length + Integer.SIZE];
-			tempByte.putInt(legth);
-			tempByte.put(buffer);
-			tempByte.rewind();
 
-			// tempByte.flip();
-			outputStream.write(tempByte.array());
+			outputStream.write(buffer);
 
 		} catch (IOException e) {
 			Log.d(TAG, "problem z zapisem" + e);
-		}
-	}
-	*/
-	public void write(int size) {
-		// TODO Auto-generated method stub
-		size = Integer.SIZE;
-		tempByte = ByteBuffer.allocate(size);
-		tempByte.capacity();
-		tempByte.order(ByteOrder.LITTLE_ENDIAN);
-		// tempByte=new ByteBuffer [buffer.length + Integer.SIZE];
-	
-		tempByte.rewind();
-		try {
-			outputStream.write(tempByte.getInt());
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
 		}
 	}
 

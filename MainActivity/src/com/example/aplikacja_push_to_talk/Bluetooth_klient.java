@@ -63,8 +63,14 @@ public class Bluetooth_klient extends Thread {
 
 	public void run() {
 		Log.d(TAG, "run");
-
+		try
+		{
+			
+		inputStream = mSocket.getInputStream();
+		outputStream = mSocket.getOutputStream();
+		polaczone = true;
 		byte[] buffer = new byte[100000];
+		//byte[] buffer = new byte[1500];
 		int bytes;
 
 		mmHandler.obtainMessage(MainBluetoothActivity.MESSAGE_WRITE, -1, -1,
@@ -88,21 +94,29 @@ public class Bluetooth_klient extends Thread {
 			mSocket.close();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
+			Log.d(TAG, "zamkniecie " + e);
 			e.printStackTrace();
-
 		}
 	}
+		catch (Exception e)
+		{
+			Log.d(TAG, "problem z run klient " + e);
+		}
+		
+	}
 
-	/*public void write(byte[] bytes) {
-		Log.d(TAG, "wpisywanie");
+	public void write(byte[] buffer) {
+		//Log.d(TAG, "wpisywanie");
+		Log.d(TAG, "zapisywanie wiadomosci z MainBluetoothActivity " + buffer.length);
 		try {
-			outputStream.write(bytes);
+			outputStream.write(buffer);
 
 		} catch (IOException e) {
 			Log.d(TAG, "problem z wpisywaniem" + e);
 		}
 	}
-	*/
+	
+
 
 	public void cancel() {
 		try {
@@ -110,17 +124,6 @@ public class Bluetooth_klient extends Thread {
 		} catch (IOException e) {
 			Log.d(TAG, "blad zamykania" + e);
 			e.printStackTrace();
-		}
-	}
-
-	public void write(int size) {
-		// TODO Auto-generated method stub
-		try {
-			size = Integer.SIZE;
-			outputStream.write(size);
-
-		} catch (IOException e) {
-			Log.d(TAG, "problem z wpisywaniem" + e);
 		}
 	}
 }

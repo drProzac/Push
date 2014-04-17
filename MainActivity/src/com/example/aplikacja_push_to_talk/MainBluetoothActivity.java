@@ -1,6 +1,7 @@
 package com.example.aplikacja_push_to_talk;
 
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.util.UUID;
 
 import com.example.aplikacja_push_to_talk.R.string;
@@ -37,7 +38,6 @@ public class MainBluetoothActivity extends Activity {
 	public AudioRecord audiorecord;
 	public AudioTrack audiotrack;
 	private Thread Rthread;
-	private Thread Rthread_receive;
 
 	private int SAMPLERATE = 8000;
 	private int CHANNEL_IN = AudioFormat.CHANNEL_IN_MONO;
@@ -50,8 +50,7 @@ public class MainBluetoothActivity extends Activity {
 																					// UUID
 																					// wziête
 																					// http://www.famkruithof.net/uuid/uuidgen
-	private static final String mac_adres = "20:54:76:0F:B9:FE"; // Nexus 7
-
+	private static final String mac_adres = "20:54:76:0F:B9:FE"; // Sony jako serwer
 	protected static final int MESSAGE_READ = 1;
 	protected static final int MESSAGE_WRITE = 2;
 	private static final int REQUEST_ENABLE_BT = 0;
@@ -71,26 +70,23 @@ public class MainBluetoothActivity extends Activity {
 	private TextView wynik;
 
 	private static String nag = "nagrywanie";
-	private static String odt = "odtwarzanie";
-	private static String wys = "wysylanie";
 
-	private static boolean completePacket = false;
-	// private static boolean receiveLeght=false;
-	private static int currentBufferPosition = 0;
 
-	ByteBuffer packetBuffer;
 	ByteBuffer messageBuffer;
+	int audioLength;
+	int audioLength1;
 	int packetLength;
-	int bufferSize = AudioRecord.getMinBufferSize(SAMPLERATE, CHANNEL_IN,
-			AUDIO_FORMAT)+Integer.SIZE;
+	int bufferSize ;
+	boolean recordAudio;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_bluetooth);
+		bufferSize = 5*AudioRecord.getMinBufferSize(SAMPLERATE, CHANNEL_IN,
+				AUDIO_FORMAT)+Integer.SIZE/8;
 
-		packetBuffer = ByteBuffer.allocate(bufferSize);
-		packetBuffer.capacity();
+
 		polacz = (Button) findViewById(R.id.polacz);
 		wyslij = (ImageButton) findViewById(R.id.wyslij);
 		statuss = (TextView) findViewById(R.id.statuss);
@@ -124,6 +120,7 @@ public class MainBluetoothActivity extends Activity {
 		audiotrack = new AudioTrack(AudioManager.MODE_IN_COMMUNICATION,
 				SAMPLERATE, CHANNEL_OUT,AUDIO_FORMAT,
 				bufferSize, AudioTrack.MODE_STREAM);
+		audiotrack.play();
 
 	}
 
@@ -152,8 +149,8 @@ public class MainBluetoothActivity extends Activity {
 
 		if (mac_adres.equals(mBluetoothAdapter.getAddress().toString())) {
 			czy_bluetooth_server = true;
-		} else {
-			czy_bluetooth_klient = false;
+		} else  {
+			czy_bluetooth_server = false;
 		}
 
 		polacz.setOnClickListener(new OnClickListener() {
@@ -170,7 +167,7 @@ public class MainBluetoothActivity extends Activity {
 								mBluetoothAdapter, mHandler);
 						bluetooth_Server.start();
 
-					} else {
+					} else /*if (czy_bluetooth_klient == false)*/ {
 						BluetoothDevice device = mBluetoothAdapter
 								.getRemoteDevice(mac_adres);
 						bluetooth_klient = new Bluetooth_klient(device, myUUID,
@@ -187,7 +184,7 @@ public class MainBluetoothActivity extends Activity {
 			}
 
 		});
-
+		
 		wyslij.setOnTouchListener(new OnTouchListener() {
 
 			@Override
@@ -195,22 +192,26 @@ public class MainBluetoothActivity extends Activity {
 				// TODO Auto-generated method stub
 
 				if (event.getAction() == MotionEvent.ACTION_DOWN) {
-					
+					final byte[] bufferAudio= new byte[bufferSize];
 					audiorecord.startRecording();
 					Log.i("info", "nagrywanie dzwieku rozpoczete");
 					Toast.makeText(getApplicationContext(),
 							"rejestrownie dŸwiêku rozpoczete ... ",
 							Toast.LENGTH_LONG).show();
-					// audiotrack.play();
 
+					recordAudio=true;
 					Rthread = new Thread(new Runnable() {
 						public void run() {
-							while (true) {
+							while (recordAudio) {
 								try {
 
-									audiorecord.read(packetBuffer.array(), 0,
-											bufferSize-Integer.SIZE);
-
+									audioLength = audiorecord.read(bufferAudio,0,bufferSize);
+									if (start == false)
+									{
+										sendAudio(bufferAudio,audioLength);
+									}
+									
+									
 								} catch (Throwable t) {
 									Log.e(nag,
 											"nagrywanie blad " + t.toString());
@@ -218,24 +219,26 @@ public class MainBluetoothActivity extends Activity {
 								}
 							}
 						}
+
+				
+
+					
 					});
 					Rthread.start();
 
 				} else if (event.getAction() == MotionEvent.ACTION_UP) {
 
 					if (!Thread.currentThread().isInterrupted()) {
-						Rthread.interrupt();
-						Log.d(nag, "nie nagrywa ");
+						recordAudio=false;
 						audiorecord.stop();
-						// audiorecord.release();
-						// audiotrack.stop();
-						// audiotrack.release();
+						Rthread.interrupt();
+						
+						Log.d(nag, "nie nagrywa ");
+						
+
 
 					}
 
-					if (start == false) {
-						wyslij_wiadomosc(Integer.SIZE);
-					}
 
 				}
 				return false;
@@ -245,8 +248,8 @@ public class MainBluetoothActivity extends Activity {
 
 	}
 
-	//
-	private void wyslij_wiadomosc(int size) {
+	
+	private void sendAudio(byte[] buffer,int audioLength) {
 
 		if (bluetooth_klient == null && bluetooth_Server == null) {
 			Toast.makeText(getApplicationContext(),
@@ -255,19 +258,16 @@ public class MainBluetoothActivity extends Activity {
 		}
 
 		else if (czy_bluetooth_server == true && (bluetooth_Server != null)) {
-			//bluetooth_Server.write(buffer);
-			bluetooth_Server.write(Integer.SIZE);
-			size = Integer.SIZE;
-			Log.d(wys, "trwa wysylanie wiadomosci1 "+ size);
-			
-			
+			bluetooth_Server.write(buffer);
 		} 
+		
+		
 		else if (czy_bluetooth_server == false && (bluetooth_klient != null)) {
-			bluetooth_klient.write(Integer.SIZE);
-			Log.d(wys, "trwa wysylanie wiadomosci2 " + size);
-		}
+			bluetooth_klient.write(buffer);
+		} 
 		
 	}
+
 
 	@Override
 	protected void onResume() {
@@ -321,80 +321,20 @@ public class MainBluetoothActivity extends Activity {
 
 			switch (msg.what) {
 			case MESSAGE_READ:
-				packetBuffer.position(currentBufferPosition);
-				messageBuffer = ByteBuffer.allocate(msg.arg1);
+				ByteBuffer messageBuffer = ByteBuffer.allocate(msg.arg1);
+				messageBuffer.put((byte[])msg.obj,0,msg.arg1);
+				messageBuffer.rewind();
+
+				audiotrack.play();
+				audiotrack.write(messageBuffer.array(), 0, msg.arg1);
+				Log.v("meeasge_read", "otrzymalem audio");
+				audiotrack.stop();
 				
-				packetBuffer.put(messageBuffer);
-				//packetBuffer.capacity();
-				//Log.e(nag, "pojemnosc bufora: " + packetBuffer.capacity());
-				Log.e(nag, "pozycja w buforze: " + currentBufferPosition + Integer.SIZE);
-				currentBufferPosition = packetBuffer.position();
-
-				if (currentBufferPosition > Integer.SIZE) {
-					packetLength = packetBuffer.getInt(0);
-					if (packetLength < currentBufferPosition) {
-						completePacket = false;
-					} else {
-						completePacket = true;
-						// currentBufferPosition=0;
-						packetBuffer.rewind();
-
-					}
-				}
-
-				if (completePacket) {
-					// odtworz dzwiek
-					completePacket = false;
-					audiotrack.play();
-					Rthread_receive = new Thread(new Runnable() {
-
-						@Override
-						public void run() {
-							// TODO Auto-generated method stub
-							while (true) {
-								Log.i("info", "odtwarzanie rozpoczete ");
-								try {
-									audiotrack.write(packetBuffer.array(), 0,
-											currentBufferPosition);
-									currentBufferPosition = 0;
-								} catch (Exception e) {
-									Log.e(odt,
-											"odtwarzanie blad " + e.toString());
-									e.printStackTrace();
-								}
-							}
-						}
-					});
-					Rthread_receive.start();
-					/*
-					 * Thread odtworz = new Thread(new Runnable() {
-					 * 
-					 * @Override public void run() { // TODO Auto-generated
-					 * method stub try { audiotrack = new
-					 * AudioTrack(AudioManager.STREAM_SYSTEM, SAMPLERATE,
-					 * CHANNEL_OUT, AUDIO_FORMAT, 2*bufferSize,
-					 * AudioTrack.MODE_STREAM); audiotrack.play(); Log.e(play,
-					 * "trwa odtwarzanie ... "); int i=0; while(i<bufferSize) {
-					 * audiotrack.write(buffer, i++, 1);
-					 * 
-					 * } } catch (Exception e) { e.printStackTrace();
-					 * Log.e("Odtwarzanie: ", "blad " + e.toString()); } } });
-					 * odtworz.start();
-					 */
-				} else {
-
-				}
-
-				// byte[] odczytaj = (byte[]) msg.obj;
-				// String odczytaj_wiadomosc = new String(odczytaj, 0,
-				// msg.arg1);
-				// status.setText(odczytaj_wiadomosc);
+				
 				break;
 
 			case MESSAGE_WRITE:
 				statuss.setText(string.rozpocznij);
-
-				// strumieniowanie();
 				break;
 
 			case CONNECTION_PROBLEM:
